@@ -46,17 +46,17 @@ export default function DealForm() {
 
   useEffect(() => {
     async function loadAccount() {
-      const wallets = await KMD.listWallets();
-      const walletId = wallets.wallets[0].id;
-
-      const handle = await KMD.initWalletHandle(walletId, "");
-      const keys = await KMD.listKeys(handle.wallet_handle_token);
-
-      setAccount(keys.addresses[0]);
-
-      await KMD.releaseWalletHandle(handle.wallet_handle_token);
+      try {
+        const wallets = await KMD.listWallets();
+        const walletId = wallets.wallets[0].id;
+        const handle = await KMD.initWalletHandle(walletId, "");
+        const keys = await KMD.listKeys(handle.wallet_handle_token);
+        setAccount(keys.addresses[0]);
+        await KMD.releaseWalletHandle(handle.wallet_handle_token);
+      } catch (e) {
+        console.error("KMD load failed:", e);
+      }
     }
-
     loadAccount();
   }, []);
 
@@ -65,11 +65,8 @@ export default function DealForm() {
   async function signTxns(txns: algosdk.Transaction[]) {
     const wallets = await KMD.listWallets();
     const walletId = wallets.wallets[0].id;
-
     const handle = await KMD.initWalletHandle(walletId, "");
-
     const signed: Uint8Array[] = [];
-
     for (const txn of txns) {
       const blob = await KMD.signTransaction(
         handle.wallet_handle_token,
@@ -78,9 +75,7 @@ export default function DealForm() {
       );
       signed.push(blob.signed_transaction);
     }
-
     await KMD.releaseWalletHandle(handle.wallet_handle_token);
-
     return signed;
   }
 
@@ -94,9 +89,14 @@ export default function DealForm() {
       setStatus("❌ Wallet not ready");
       return;
     }
-
     if (!sellerAddress || !assetId || !asaAmount || !algoAmount) {
       setStatus("❌ Fill all fields");
+      return;
+    }
+
+    const parsedAssetId = parseInt(assetId);
+    if (isNaN(parsedAssetId) || parsedAssetId <= 0) {
+      setStatus("❌ Asset ID must be a positive integer");
       return;
     }
 
@@ -108,7 +108,7 @@ export default function DealForm() {
       const params: DealParams & { asaAmount: number } = {
         buyerAddress: account,
         sellerAddress,
-        assetId: parseInt(assetId),
+        assetId: parsedAssetId,
         asaAmount: parseInt(asaAmount),
         algoAmount: parseFloat(algoAmount),
         agentAddress,
@@ -118,65 +118,142 @@ export default function DealForm() {
       const txns = await buildAtomicSettlementTxns(params);
 
       setStatus("⏳ Signing via KMD...");
-
       const signed = await signTxns(txns);
 
       setStatus("⏳ Submitting...");
-
       const res = await submitSignedGroup(signed);
 
       setResult(res);
       setStatus("");
     } catch (err: any) {
-      setResult({
-        success: false,
-        error: err.message,
-      });
+      setResult({ success: false, error: err.message });
     } finally {
       setIsLoading(false);
     }
   }
 
+  // ── INPUT STYLE ─────────────────────────────────────────────────────────
+
+  const inputClass =
+    "w-full px-3 py-2 rounded-lg border border-algo-border bg-algo-dark text-white placeholder-algo-muted focus:outline-none focus:border-algo-green focus:ring-1 focus:ring-algo-green transition-colors font-display text-sm";
+
+  const labelClass =
+    "block text-xs font-display text-algo-muted uppercase tracking-widest mb-1";
+
   // ── UI ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-4">
-      <div>Wallet: {account ? account.slice(0, 10) + "..." : "Loading..."}</div>
+    <div className="space-y-5">
+      {/* Wallet badge */}
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-algo-dark border border-algo-border">
+        <span className="w-2 h-2 rounded-full bg-algo-green animate-pulse-slow" />
+        <span className="font-display text-xs text-algo-muted">Wallet:</span>
+        <span className="font-display text-xs text-algo-green truncate">
+          {account ? account : "Connecting…"}
+        </span>
+      </div>
 
-      <input
-        placeholder="Seller Address"
-        value={sellerAddress}
-        onChange={(e) => setSellerAddress(e.target.value)}
-      />
+      {/* Form fields */}
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className={labelClass}>Seller Address (Bob)</label>
+          <input
+            className={inputClass}
+            placeholder="ALGO address of the seller"
+            value={sellerAddress}
+            onChange={(e) => setSellerAddress(e.target.value)}
+          />
+        </div>
 
-      <input
-        placeholder="Asset ID"
-        value={assetId}
-        onChange={(e) => setAssetId(e.target.value)}
-      />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>Asset ID</label>
+            <input
+              className={inputClass}
+              type="number"
+              placeholder="e.g. 123456"
+              value={assetId}
+              onChange={(e) => setAssetId(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>ASA Amount</label>
+            <input
+              className={inputClass}
+              type="number"
+              placeholder="Units to receive"
+              value={asaAmount}
+              onChange={(e) => setAsaAmount(e.target.value)}
+            />
+          </div>
+        </div>
 
-      <input
-        placeholder="ASA Amount"
-        value={asaAmount}
-        onChange={(e) => setAsaAmount(e.target.value)}
-      />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>ALGO Amount</label>
+            <input
+              className={inputClass}
+              type="number"
+              step="0.001"
+              placeholder="e.g. 10.5"
+              value={algoAmount}
+              onChange={(e) => setAlgoAmount(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Agent Address (Charlie)</label>
+            <input
+              className={inputClass}
+              placeholder="Agent's ALGO address"
+              value={agentAddress}
+              onChange={(e) => setAgentAddress(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
 
-      <input
-        placeholder="ALGO Amount"
-        value={algoAmount}
-        onChange={(e) => setAlgoAmount(e.target.value)}
-      />
-
-      <button onClick={handleExecute} disabled={isLoading}>
-        {isLoading ? "Processing..." : "Execute Swap"}
+      {/* Submit button */}
+      <button
+        onClick={handleExecute}
+        disabled={isLoading}
+        className="w-full py-3 px-6 rounded-xl font-display text-sm font-bold tracking-wide transition-all
+          bg-algo-green text-algo-dark hover:bg-algo-green/90 active:scale-95
+          disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100
+          shadow-lg shadow-algo-green/20"
+      >
+        {isLoading ? (
+          <span className="flex items-center justify-center gap-2">
+            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+            Processing…
+          </span>
+        ) : (
+          "Execute Atomic Swap"
+        )}
       </button>
 
-      {status && <p>{status}</p>}
+      {/* Status message */}
+      {status && (
+        <p className="font-display text-xs text-algo-muted px-1">{status}</p>
+      )}
 
+      {/* Result */}
       {result && (
-        <div>
-          {result.success ? "✅ Success" : "❌ Failed"}
-          <pre>{JSON.stringify(result, null, 2)}</pre>
+        <div
+          className={`rounded-xl border p-4 ${
+            result.success
+              ? "border-algo-green/30 bg-algo-green/5"
+              : "border-red-500/30 bg-red-500/5"
+          }`}
+        >
+          <p className="font-display text-sm font-bold mb-2 text-white">
+            {result.success ? "✅ Success" : "❌ Failed"}
+          </p>
+          <pre className="font-display text-xs text-algo-muted overflow-auto whitespace-pre-wrap break-all">
+            {JSON.stringify(result, null, 2)}
+          </pre>
         </div>
       )}
     </div>
