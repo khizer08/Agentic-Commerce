@@ -1,17 +1,4 @@
-/**
- * lib/walletProviders.ts
- *
- * Configures the @txnlab/use-wallet provider list for the OTC Swap app.
- *
- * Supported wallets on LocalNet:
- *  - KMD (built-in AlgoKit LocalNet wallet — always available)
- *  - Pera Wallet (mobile, requires Pera app)
- *  - Defly Wallet (mobile, requires Defly app)
- *  - Lute Wallet (browser extension)
- *
- * The WalletManager is instantiated once and exported as a singleton.
- * It is passed to <WalletProvider> in the root layout.
- */
+"use client";
 
 import {
   WalletManager,
@@ -27,32 +14,30 @@ const ALGOD_TOKEN =
 
 export const walletManager = new WalletManager({
   wallets: [
-    // ── KMD — LocalNet dev wallet ──────────────────────────────────────────
+    // ── KMD — LocalNet dev wallet (PRIMARY for demo) ───────────────────────
     {
       id: WalletId.KMD,
       options: {
         host: ALGOD_SERVER,
-        port: 4002,                     // KMD default port
+        port: 4002,
         token: ALGOD_TOKEN,
         wallet: "unencrypted-default-wallet",
         password: "",
       },
     },
-    // ── Pera Wallet ───────────────────────────────────────────────────────
+
+    // ── Pera Wallet (optional) ─────────────────────────────────────────────
     {
       id: WalletId.PERA,
     },
-    // ── Defly Wallet ──────────────────────────────────────────────────────
-    {
-      id: WalletId.DEFLY,
-    },
-    // ── Lute Wallet (browser extension) ───────────────────────────────────
-    {
-      id: WalletId.LUTE,
-      options: { siteName: "OTC Trustless Swap" },
-    },
+
+    // ❌ REMOVED:
+    // WalletId.DEFLY
+    // WalletId.LUTE
   ],
+
   network: NetworkId.LOCALNET,
+
   algod: {
     baseServer: ALGOD_SERVER,
     port: ALGOD_PORT,
