@@ -1,0 +1,21 @@
+{
+  "name": "otc-swap-contracts",
+  "version": "1.0.0",
+  "description": "TealScript smart contracts for OTC Trustless Swap",
+  "scripts": {
+    "build": "tealscript contracts/DealRegistry.algo.ts artifacts/",
+    "deploy": "ts-node --esm scripts/deploy.ts",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@algorandfoundation/algokit-utils": "^7.0.0",
+    "algosdk": "^2.7.0"
+  },
+  "devDependencies": {
+    "@algorandfoundation/tealscript": "^0.103.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  },
+  "type": "module"
+}
