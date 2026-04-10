@@ -189,7 +189,7 @@ export class DealRegistry extends Contract {
 
     this.lastDealBuyer.value = buyer;
     this.lastDealSeller.value = seller;
-    this.lastDealAssetId.value = assetId;
+    this.lastDealAssetId.value = assetId.id;
     this.lastDealAssetAmt.value = assetAmount;
     this.lastDealAlgoAmt.value = algoPayout;
     this.lastDealFeeAmt.value = feeAmount;
