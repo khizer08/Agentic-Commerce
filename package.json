@@ -1,0 +1,17 @@
+{
+  "name": "otc-swap-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OTC Trustless Swap — Hack.Algo REVA Edition",
+  "scripts": {
+    "install:all": "npm install --prefix contracts && npm install --prefix frontend",
+    "build:contracts": "npm run build --prefix contracts",
+    "deploy:contracts": "npm run deploy --prefix contracts",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "setup": "npm run install:all && echo '\n✅ Run: npm run build:contracts, then npm run deploy:contracts, then npm run dev:frontend'"
+  },
+  "workspaces": [
+    "contracts",
+    "frontend"
+  ]
+}

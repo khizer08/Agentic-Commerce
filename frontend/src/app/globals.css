@@ -1,0 +1,89 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Custom Properties ─────────────────────────────────────────────── */
+:root {
+  --algo-green:  #00DC82;
+  --algo-dark:   #0A0F1E;
+  --algo-panel:  #0D1528;
+  --algo-border: #1E2D4A;
+  --algo-muted:  #4A6080;
+  --algo-accent: #00BFFF;
+}
+
+/* ─── Base resets ────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--algo-dark);
+  color: white;
+  overflow-x: hidden;
+}
+
+/* ─── Scrollbar styling ──────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--algo-dark); }
+::-webkit-scrollbar-thumb  { background: var(--algo-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--algo-muted); }
+
+/* ─── Selection colour ───────────────────────────────────────────────────── */
+::selection {
+  background: #00DC8240;
+  color: white;
+}
+
+/* ─── Noise texture overlay (subtle grain) ───────────────────────────────── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ─── Grid background pattern ────────────────────────────────────────────── */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 220, 130, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 220, 130, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ─── Radial glow blobs ──────────────────────────────────────────────────── */
+.glow-green {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 220, 130, 0.12) 0%,
+    transparent 70%
+  );
+}
+
+.glow-blue {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 191, 255, 0.08) 0%,
+    transparent 70%
+  );
+}
+
+/* ─── Number input appearance reset ─────────────────────────────────────── */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
