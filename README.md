@@ -27,7 +27,6 @@ Charlie (Agent)─┘
 ## Quick Start
 
 ### 1. Prerequisites
-
 ```bash
 pip install algokit
 algokit localnet start
